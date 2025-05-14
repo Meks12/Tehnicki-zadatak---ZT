@@ -1,0 +1,3 @@
+/Users/nikolamerlic/Zenitel_zadatak/build/CMakeFiles/ZenitelZadatak.dir
+/Users/nikolamerlic/Zenitel_zadatak/build/CMakeFiles/edit_cache.dir
+/Users/nikolamerlic/Zenitel_zadatak/build/CMakeFiles/rebuild_cache.dir
