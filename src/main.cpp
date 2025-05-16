@@ -20,6 +20,16 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Datoteka uspješno otvorena!" << putanja << std::endl;
+
+    std:: string linija;
+    int broj_linije = 1;
+
+    while (std::getline(datoteka, linija)){
+        std::cout<< " [" << broj_linije << "] " << linija << std::endl;
+        broj_linije++;
+    }
+    
+
     datoteka.close();
 
     return 0;
