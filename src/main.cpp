@@ -1,6 +1,12 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <regex>
+#include <vector>
+#include <thread>
+#include <mutex>
+
+std::mutex mtx;
 
 bool ispravanDatum(int dan, int mjesec, int godina)
 {
@@ -17,6 +23,41 @@ bool ispravanDatum(int dan, int mjesec, int godina)
 
 }
 
+void obradiDatoteku(const std:: string& putanja, 
+    std::vector<std::string>& ispravneLinije,
+    std::vector<std::string>& neispravneLinije){
+    std::ifstream datoteka(putanja);
+
+    if(!datoteka.is_open()){
+        std::cerr << "❌ Greška pri otvaranju datoteke u threadu: " << putanja << std::endl;
+        return;
+    }
+
+    std::string linija;
+    std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+(\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+)+$)");
+
+    while (std::getline(datoteka, linija)){
+        if (std::regex_match(linija, uzorak)) {
+            int dan = std::stoi(linija.substr(0,2));
+            int mjesec = std::stoi(linija.substr(3,2));
+            int godina = std::stoi(linija.substr(6,4));
+
+            if (ispravanDatum(dan, mjesec, godina)){
+                std::lock_guard<std::mutex> lock(mtx);
+                ispravneLinije.push_back(linija);
+            } else {
+                std::lock_guard<std::mutex> lock(mtx);
+                neispravneLinije.push_back(linija);
+            }
+        } else {
+            std::lock_guard<std::mutex> lock(mtx);
+            neispravneLinije.push_back(linija);
+        }
+    }
+    
+    datoteka.close();
+}
+
 int main(int argc, char *argv[])
 {
     // Ovdje provjeravam ukoliko je korisnik unio točno jedan argument
@@ -28,41 +69,28 @@ int main(int argc, char *argv[])
     // Dohvacanje putanje iz komandne linije
     std::string putanja = argv[1];
 
-    // Otvaranje datoteke
-    std::ifstream datoteka(putanja);
+    std::vector<std::string> ispravneLinije;
+    std::vector<std::string> neispravneLinije;
 
-    // Uvjet koji provjerava da li je datoteka uspješno otvorena
-    if (!datoteka.is_open())
-    {
-        std::cerr << "Greska ne mogu otvoriti datoteku!" << putanja << std::endl;
-        return 1;
+    std::thread t(obradiDatoteku, putanja,
+                std::ref(ispravneLinije),
+                std::ref(neispravneLinije));
+
+    t.join();
+
+    std::cout << "\n✅ Ispis ispravnih unosa:\n";
+    int broj = 1;
+    for (const auto& linija : ispravneLinije){
+        std::cout << " [" << broj << "] " << linija << std::endl;
+        broj++;
     }
 
-    std::cout << "Datoteka uspješno otvorena!" << putanja << std::endl;
-
-    std::string linija;
-    int broj_linije = 1;
-    std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+(\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+)+$)");
-
-    while (std::getline(datoteka, linija)) {
-        if (std::regex_match(linija, uzorak)) {
-
-            int dan = std::stoi(linija.substr(0,2));
-            int mjesec = std::stoi(linija.substr(3,2));
-            int godina = std::stoi(linija.substr(6,4));
-
-            if(ispravanDatum(dan, mjesec, godina)){
-                std::cout << " [" << broj_linije << "] ✅ Ispravno: " << linija << std::endl; 
-            } else {
-                std::cout << "[" << broj_linije << "] ❌ Neispravan datum: " << linija << std::endl;
-            }
-        } else {
-            std::cout << "[" << broj_linije << "] ❌ Neispravno: " << linija << std::endl;
-        }
-        broj_linije++;
+    std::cout << "\n❌ Ispis neispravnih unosa:\n";
+    int broj2 = 1;
+    for (const auto& linija: neispravneLinije){
+        std::cout<< " [" << broj2 << "] " << linija << std::endl;
+        broj2++;
     }
-    
-    datoteka.close();
 
     return 0;
 }
