@@ -24,8 +24,8 @@ bool ispravanDatum(int dan, int mjesec, int godina)
 }
 
 void obradiDatoteku(const std:: string& putanja, 
-    std::vector<std::string>& ispravneLinije,
-    std::vector<std::string>& neispravneLinije){
+    std::vector<std::pair<int, std::string>>& ispravneLinije,
+    std::vector<std::pair<int, std::string>>& neispravneLinije){
     std::ifstream datoteka(putanja);
 
     if(!datoteka.is_open()){
@@ -34,6 +34,7 @@ void obradiDatoteku(const std:: string& putanja,
     }
 
     std::string linija;
+    int brojLinije = 1;
     std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+(\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+)+$)");
 
     while (std::getline(datoteka, linija)){
@@ -44,15 +45,16 @@ void obradiDatoteku(const std:: string& putanja,
 
             if (ispravanDatum(dan, mjesec, godina)){
                 std::lock_guard<std::mutex> lock(mtx);
-                ispravneLinije.push_back(linija);
+                ispravneLinije.push_back({brojLinije, linija});
             } else {
                 std::lock_guard<std::mutex> lock(mtx);
-                neispravneLinije.push_back(linija);
+                neispravneLinije.push_back({brojLinije, linija});
             }
         } else {
             std::lock_guard<std::mutex> lock(mtx);
-            neispravneLinije.push_back(linija);
+            neispravneLinije.push_back({brojLinije, linija});
         }
+        brojLinije++;
     }
     
     datoteka.close();
@@ -69,8 +71,8 @@ int main(int argc, char *argv[])
     // Dohvacanje putanje iz komandne linije
     std::string putanja = argv[1];
 
-    std::vector<std::string> ispravneLinije;
-    std::vector<std::string> neispravneLinije;
+    std::vector<std::pair<int, std::string>> ispravneLinije;
+    std::vector<std::pair<int, std::string>> neispravneLinije;
 
     std::thread t(obradiDatoteku, putanja,
                 std::ref(ispravneLinije),
@@ -79,17 +81,13 @@ int main(int argc, char *argv[])
     t.join();
 
     std::cout << "\n✅ Ispis ispravnih unosa:\n";
-    int broj = 1;
     for (const auto& linija : ispravneLinije){
-        std::cout << " [" << broj << "] " << linija << std::endl;
-        broj++;
+        std::cout << " [" << linija.first << "] " << linija.second << std::endl;
     }
 
     std::cout << "\n❌ Ispis neispravnih unosa:\n";
-    int broj2 = 1;
     for (const auto& linija: neispravneLinije){
-        std::cout<< " [" << broj2 << "] " << linija << std::endl;
-        broj2++;
+        std::cout<< " [" << linija.first << "] " << linija.second << std::endl;
     }
 
     return 0;
