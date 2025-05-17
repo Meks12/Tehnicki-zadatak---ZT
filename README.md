@@ -1,16 +1,40 @@
-Specifikacija:
-Zadatak je potrebno riješiti koristeći C++ sa željenim dodatnim open source bibliotekama, ili koristeći Qt framework.
-Kao build alat je potrebno koristiti CMake.
-Rješenje je potrebno uploadati na git server po vlastitom odabiru (github, gitlab, nešto treće...) kao dobro strukturirani projekt.
-Konzolna aplikacija koje će verificirati unose iz tekstualne datoteke prema zadanim pravilima i ispisivati sve unose koji zadovolje zadani format.
-Putanja do datoteke mora biti ulazni parametar za aplikaciju.
-Tekstualna datoteka će u svakom redu imati unos koji se sastoji od datuma, imena i prezimena.
-Ispravni format za unos je „DD.MM.YYYY Ime Prezime“
-Dupla imena i prezimena se smatraju valjanim unosom, te su za njih podržana ova dva formata:
-DD.MM.YYYY Ime Ime Prezime Prezime
-DD.MM.YYYY Ime-Ime Prezime-Prezime
-Potrebno je pripremiti tekstualnu datoteku sa barem 10 unosa.
-Datoteka mora imati i nekoliko unosa koji ne zadovoljavaju zadani format, npr. datum u krivom obliku, ime koje sadrži specijalne znakove (%,#,& itd.).
-Provjeru unosa je potrebno implementirati koristeći regularne ekspresije (regex).
-Čitanje iz datoteke i provjera unosa se mora obaviti na zasebnom threadu. Nakon što je cijela datoteka procesirana glavni thread mora ispisati ispravne unose.
-Bonus bodovi za unit testove.
+# Validacija unosa iz tekstualne datoteke (C++ zadatak)
+
+## Opis
+
+Konzolna aplikacija napisana u C++ jeziku koja provjerava ispravnost unosa iz tekstualne datoteke prema zadanim pravilima. Kao build alat koristi se CMake. Čitanje i validacija se odvijaju u zasebnom threadu, dok glavni thread ispisuje ispravne i neispravne unose.
+
+## Tehnički detalji
+
+- Jezik: C++
+- Build alat: CMake
+- Struktura projekta:
+  - `src/main.cpp` – glavni izvorni kod
+  - `CMakeLists.txt` – build konfiguracija
+  - `primjer.txt` – datoteka s unosima
+  - `README.md` 
+
+## Pravila validacije
+
+- Svaki red u tekstualnoj datoteci mora sadržavati:
+  - Datum u formatu `DD.MM.YYYY`
+  - Ime i prezime
+- Dozvoljeni su formati:
+  - `Ime Ime Prezime Prezime`
+  - `Ime-Ime Prezime-Prezime`
+- Imena i prezimena moraju počinjati velikim slovom
+- Nedozvoljeni su brojevi u imenima, kao i specijalni znakovi poput `%`, `#`, `@`, `&`, itd.
+- Datum mora biti kalendarski ispravan (npr. 31.02. je nevažeći)
+
+## Upute za korištenje
+
+1. **Buildanje projekta**
+
+Otvorite terminal u root direktoriju projekta i izvršite:
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+Nakon buildanja - ./ZenitelZadatak ../primjer.txt
