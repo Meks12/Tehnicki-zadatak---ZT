@@ -37,4 +37,4 @@ mkdir build
 cd build
 cmake ..
 make
-Nakon buildanja - ./ZenitelZadatak ../primjer.txt
+./ZenitelZadatak ../primjer.txt
