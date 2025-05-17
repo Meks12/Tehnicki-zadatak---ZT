@@ -6,8 +6,10 @@
 #include <thread>
 #include <mutex>
 
+// Omogucuje se siguran pristup dijeljenim podacima izmedu glavne dretve i dretve koja obraduje datoteku
 std::mutex mtx;
 
+//Funkcija provjerava ako je datum kalendarski ispravan
 bool ispravanDatum(int dan, int mjesec, int godina)
 {
     if (mjesec < 1 || mjesec > 12) return false;
@@ -23,20 +25,25 @@ bool ispravanDatum(int dan, int mjesec, int godina)
 
 }
 
+// Funkcija koja obraduje datoteku i puni vektore ispravnih i neispravnih linija
 void obradiDatoteku(const std:: string& putanja, 
     std::vector<std::pair<int, std::string>>& ispravneLinije,
     std::vector<std::pair<int, std::string>>& neispravneLinije){
+    // Otvaramo datoteku za čitanje
     std::ifstream datoteka(putanja);
-
+    
+    // Ako nije moguce otvoriti, ispisi gresku i prekini funkciju
     if(!datoteka.is_open()){
         std::cerr << "❌ Greška pri otvaranju datoteke u threadu: " << putanja << std::endl;
         return;
     }
 
     std::string linija;
-    int brojLinije = 1;
+    int brojLinije = 1; // Brojac koji pamti redni broj linije u datoteci
+    // Regex se koristi za validaciju unosa tj. da podrzava zadani unos
     std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+(\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+)+$)");
 
+    // While čita datoteku liniju po liniju i povećava redni broj linije
     while (std::getline(datoteka, linija)){
         if (std::regex_match(linija, uzorak)) {
             int dan = std::stoi(linija.substr(0,2));
@@ -70,25 +77,30 @@ int main(int argc, char *argv[])
     }
     // Dohvacanje putanje iz komandne linije
     std::string putanja = argv[1];
-
+    
+    // Vektori za spremanje validiranih linija s njihovim rednim brojevima
     std::vector<std::pair<int, std::string>> ispravneLinije;
     std::vector<std::pair<int, std::string>> neispravneLinije;
 
+    // Pokretanje zasebne dretve koja obrađuje datoteku
     std::thread t(obradiDatoteku, putanja,
                 std::ref(ispravneLinije),
                 std::ref(neispravneLinije));
-
+    
+    // ceka da dretva završi prije nego nastavimo
     t.join();
 
+    // Ispis ispravnih linija s rednim brojem iz datoteke
     std::cout << "\n✅ Ispis ispravnih unosa:\n";
     for (const auto& linija : ispravneLinije){
         std::cout << " [" << linija.first << "] " << linija.second << std::endl;
     }
 
+     // Ispis neispravnih linija s rednim brojem iz datoteke
     std::cout << "\n❌ Ispis neispravnih unosa:\n";
     for (const auto& linija: neispravneLinije){
         std::cout<< " [" << linija.first << "] " << linija.second << std::endl;
     }
 
-    return 0;
+    return 0; // Zavrsetak programa
 }
