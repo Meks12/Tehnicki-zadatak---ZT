@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <regex>
 
 int main(int argc, char* argv[]) {
     // Ovdje provjeravam ukoliko je korisnik unio točno jedan argument
@@ -21,14 +22,19 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Datoteka uspješno otvorena!" << putanja << std::endl;
 
-    std:: string linija;
+    std::string linija;
     int broj_linije = 1;
+    std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+(\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+)+$)");
 
-    while (std::getline(datoteka, linija)){
-        std::cout<< " [" << broj_linije << "] " << linija << std::endl;
-        broj_linije++;
+    while (std::getline(datoteka, linija)) {
+        if (std::regex_match(linija, uzorak)) {
+            std::cout << "[" << broj_linije << "] ✅ Ispravno: " << linija << std::endl;
+    } else {
+        std::cout << "[" << broj_linije << "] ❌ Neispravno: " << linija << std::endl;
     }
-    
+    broj_linije++;
+    }
+
 
     datoteka.close();
 
