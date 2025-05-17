@@ -34,7 +34,7 @@ void obradiDatoteku(const std:: string& putanja,
     }
 
     std::string linija;
-    std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+(\s+[A-ZŽĆČŠĐ][a-zA-ZžćčšđŽĆČŠĐ-]+)+$)");
+    std::regex uzorak(R"(^\d{2}\.\d{2}\.\d{4}\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+(\s+[A-ZŽĆČŠĐ][-a-zA-ZžćčšđŽĆČŠĐ]+)+$)");
 
     while (std::getline(datoteka, linija)){
         if (std::regex_match(linija, uzorak)) {
